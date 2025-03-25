@@ -1,36 +1,22 @@
 #include "Mandelbrot.hpp"
 
-int main()
-{
+int main() {
 	srand((unsigned int)time(NULL));
 
-	sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Mandelbrot!");
+	MandelbrotStatusCode mandelbrot_status = MANDELBROT_NO_ERROR;
 
-	sf::Uint8* pixels = new sf::Uint8[PIXELS_SIZE];
+	SFML sfml = {};
 
-	sf::Texture texture;
-	texture.create(WINDOW_WIDTH, WINDOW_HEIGHT);
+	sfml.window.create(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Mandelbrot!");
+	sfml.pixels = new sf::Uint8[PIXELS_SIZE];
 
-	sf::Sprite sprite;
-	sprite.setTexture(texture);
+	if (!sfml.texture.create(WINDOW_WIDTH, WINDOW_HEIGHT))
+		MANDELBROT_ERROR_CHECK(MANDELBROT_SFML_CREATE_ERROR);
 
-	while (window.isOpen())
-	{
-		sf::Event event;
-		while (window.pollEvent(event))
-		{
-			if (event.type == sf::Event::Closed)
-				window.close();
-		}
+	sfml.sprite.setTexture(sfml.texture);
 
-		for (size_t i = 0; i < PIXELS_SIZE; i++)
-			pixels[i] = (sf::Uint8)(rand() % 255);
-		texture.update(pixels);
-
-		window.clear();
-		window.draw(sprite);
-		window.display();
-	}
+	mandelbrot_status = RunSFML(&sfml);
+	MANDELBROT_ERROR_CHECK(mandelbrot_status);
 
 	return 0;
 }
