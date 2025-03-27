@@ -2,19 +2,28 @@
 
 MandelbrotStatusCode RunSFML(SFML* sfml) {
 
+	mandel_t horizontal_shift = 0,
+			 vertical_shift = 0,
+			 scale = 1.0f,
+			 dx = WIDTH_PER_SEGMENTS / (mandel_t)WINDOW_WIDTH,
+			 dy = HEIGHT_PER_SEGMENTS / (mandel_t)WINDOW_HEIGHT;
+
 	while (sfml->window.isOpen())
 	{
 		sf::Event event;
 		while (sfml->window.pollEvent(event))
 		{
-			if (event.type == sf::Event::Closed)
-				sfml->window.close();
+			switch (event.type) {
+				case sf::Event::Closed: 	{ sfml->window.close(); break; }
+				case sf::Event::KeyPressed: { CalculateShift(&event, &horizontal_shift, &vertical_shift, &scale); }
+				default: break;
+			}
 		}
 
 		for (unsigned int y_index = 0; y_index < WINDOW_HEIGHT; y_index++) {
-			mandel_t x_0 = -2.0f;
-			mandel_t y_0 = (mandel_t)(1.5f - ((mandel_t)y_index * 3.0f / (mandel_t)WINDOW_HEIGHT));
-			for (unsigned int x_index = 0; x_index < WINDOW_WIDTH; x_index++, x_0 += 3.0f / (mandel_t)WINDOW_WIDTH) {
+			mandel_t x_0 = (-(mandel_t)WINDOW_WIDTH * 2.0f / WIDTH_PER_SEGMENTS) * dx * scale + horizontal_shift * dx;
+			mandel_t y_0 = (((mandel_t)y_index - (mandel_t)WINDOW_HEIGHT / 2.0f)) * dy * scale + vertical_shift * dy;
+			for (unsigned int x_index = 0; x_index < WINDOW_WIDTH; x_index++, x_0 += dx * scale) {
 				mandel_t X = x_0,
 						 Y = y_0;
 				int n = 0;
@@ -27,12 +36,10 @@ MandelbrotStatusCode RunSFML(SFML* sfml) {
 					X = x2 - y2 + x_0;
 					Y = xy + xy + y_0;
 				}
-				if (n >= MAXIMUM_ITERATIONS)
-					continue;
-				n *= 8;
-				sfml->pixels[4 * (x_index + y_index * WINDOW_WIDTH)] 		= (sf::Uint8)(n);
-				sfml->pixels[4 * (x_index + y_index * WINDOW_WIDTH) + 1] 	= (sf::Uint8)(n);
-				sfml->pixels[4 * (x_index + y_index * WINDOW_WIDTH) + 2] 	= (sf::Uint8)(128 - n);
+				n *= COLOR_SENSITIVITY;
+				sfml->pixels[4 * (x_index + y_index * WINDOW_WIDTH)] 		= (sf::Uint8)(n % MAXIMUM_ITERATIONS);
+				sfml->pixels[4 * (x_index + y_index * WINDOW_WIDTH) + 1] 	= (sf::Uint8)(n % MAXIMUM_ITERATIONS);
+				sfml->pixels[4 * (x_index + y_index * WINDOW_WIDTH) + 2] 	= (sf::Uint8)((MAXIMUM_ITERATIONS * COLOR_SENSITIVITY - n) / 20);
 				sfml->pixels[4 * (x_index + y_index * WINDOW_WIDTH) + 3] 	= 255;
 			}
 		}
@@ -44,6 +51,18 @@ MandelbrotStatusCode RunSFML(SFML* sfml) {
 	}
 
 	return MANDELBROT_NO_ERROR;
+}
+
+void CalculateShift(sf::Event* event, mandel_t* horizontal_shift, mandel_t* vertical_shift, mandel_t* scale) {
+	switch (event->key.scancode) {
+		case sf::Keyboard::Scan::Left: 			{ *horizontal_shift	-= SHIFT_SENSITIVITY * *scale; 	break; }
+		case sf::Keyboard::Scan::Right:			{ *horizontal_shift += SHIFT_SENSITIVITY * *scale; 	break; }
+		case sf::Keyboard::Scan::Up: 			{ *vertical_shift 	-= SHIFT_SENSITIVITY * *scale;	break; }
+		case sf::Keyboard::Scan::Down: 			{ *vertical_shift 	+= SHIFT_SENSITIVITY * *scale; 	break; }
+		case sf::Keyboard::Scan::NumpadPlus: 	{ *scale /= 1.5f; break; }
+		case sf::Keyboard::Scan::NumpadMinus: 	{ *scale *= 1.5f; break; }
+		default: break;
+	}
 }
 
 const wchar_t* MandelbrotErrorsMessenger(MandelbrotStatusCode status) {
