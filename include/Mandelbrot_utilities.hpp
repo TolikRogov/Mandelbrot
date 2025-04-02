@@ -34,6 +34,7 @@ enum MandelbrotStatusCode {
 	MANDELBROT_SFML_CREATE_ERROR,
 	MANDELBROT_ALLOCATION_ERROR,
 	MANDELBROT_NULL_POINTER,
+	MANDELBROT_UNDEFINED_ERROR,
 };
 
 const wchar_t* MandelbrotErrorsMessenger(MandelbrotStatusCode status);

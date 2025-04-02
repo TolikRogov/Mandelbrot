@@ -16,6 +16,14 @@ const mandel_t MAX_RADIUS 			= 100.0f;
 const int MAXIMUM_ITERATIONS 		= 256;
 const int COLOR_SENSITIVITY			= 8;
 
+struct Mandel_struct {
+	mandel_t horizontal;
+	mandel_t vertical;
+	mandel_t scale;
+	mandel_t dx;
+	mandel_t dy;
+};
+
 struct SFML {
 	sf::RenderWindow window;
 	sf::Uint8* pixels;
@@ -24,4 +32,5 @@ struct SFML {
 };
 
 MandelbrotStatusCode RunSFML(SFML* sfml);
-void CalculateShift(sf::Event* event, mandel_t* horizontal_shift, mandel_t* vertical_shift, mandel_t* scale);
+MandelbrotStatusCode KeyHandler(sf::Event* event, Mandel_struct* mnd);
+MandelbrotStatusCode RunMandelbrot(SFML* sfml, Mandel_struct* mnd);
