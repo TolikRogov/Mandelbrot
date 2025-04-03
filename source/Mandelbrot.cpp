@@ -1,5 +1,32 @@
 #include "Mandelbrot.hpp"
 
+inline void mm_set_ps(mandel_t* dst, mandel_t e0, mandel_t e1, mandel_t e2, mandel_t e3) {
+	dst[0] = e0;
+	dst[1] = e1;
+	dst[2] = e2;
+	dst[3] = e3;
+}
+inline void mm_set_epi32(int* dst, int e0, int e1, int e2, int e3) {
+	dst[0] = e0;
+	dst[1] = e1;
+	dst[2] = e2;
+	dst[3] = e3;
+}
+inline void mm_set_ps1		(mandel_t* dst, mandel_t a) 				{ for (size_t i = 0; i < 4; i++) dst[i] = a; }
+inline void mm_cpy_ps		(mandel_t* dst, mandel_t* src) 				{ for (size_t i = 0; i < 4; i++) dst[i] = src[i]; }
+inline void mm_add_ps		(mandel_t* dst, mandel_t* a, mandel_t* b)	{ for (size_t i = 0; i < 4; i++) dst[i] = a[i] + b[i]; }
+inline void mm_sub_ps		(mandel_t* dst, mandel_t* a, mandel_t* b)	{ for (size_t i = 0; i < 4; i++) dst[i] = a[i] - b[i]; }
+inline void mm_mul_ps		(mandel_t* dst, mandel_t* a, mandel_t* b)	{ for (size_t i = 0; i < 4; i++) dst[i] = a[i] * b[i]; }
+inline void mm_add_epi32	(int* dst, int* a, int* b)					{ for (size_t i = 0; i < 4; i++) dst[i] = a[i] + (int)b[i]; }
+inline void mm_mul_1epi32	(int* dst, int* a, int val)					{ for (size_t i = 0; i < 4; i++) dst[i] = a[i] * (int)val; }
+inline void mm_cmple_ps 	(int* a, mandel_t* b, int val)				{ for (size_t i = 0; i < 4; i++) { if (b[i] <= val) a[i] = 1; } }
+inline int  mm_move_mask_ps (int* a) {
+	int mask = 0;
+	for (size_t i = 0; i < 4; i++)
+		mask |= (a[i] << i);
+	return mask;
+}
+
 MandelbrotStatusCode RunLab(LabWork* lab) {
 	SFML* sfml = lab->sfml;
 	Mandel_struct mnd = {.scale	= STANDARD_SCALE,
@@ -31,6 +58,47 @@ MandelbrotStatusCode RunLab(LabWork* lab) {
 		CalcFPS(sfml, &mnd);
 	}
 
+	return MANDELBROT_NO_ERROR;
+}
+
+MandelbrotStatusCode FunctionVersionMandelbrot(SFML* sfml, Mandel_struct* mnd) {
+	mandel_t cur_dx = mnd->dx * mnd->scale;
+	for (unsigned int runs = 0; runs < mnd->runs; runs++) {
+		for (unsigned int y_index = 0; y_index < WINDOW_HEIGHT; y_index++) {
+			mandel_t x_0 = (mnd->horizontal + (-(mandel_t)WINDOW_WIDTH * X_CENTER_IN_SEGMENTS / WIDTH_PER_SEGMENTS) * mnd->scale) * mnd->dx;
+			mandel_t y_0 = (mnd->vertical + ((mandel_t)y_index - (mandel_t)WINDOW_HEIGHT / PART_OF_Y_CENTER_PXL) * mnd->scale) * mnd->dy;
+			for (unsigned int x_index = 0; x_index < WINDOW_WIDTH; x_index += 4, x_0 += 4 * cur_dx) {
+				mandel_t x0[4] = {}, y0[4] = {}, X[4]  = {}, Y[4]  = {};
+				mm_set_ps(x0, x_0, x_0 + cur_dx, x_0 + 2 * cur_dx, x_0 + 3 * cur_dx);
+				mm_set_ps1(y0, y_0);
+				mm_cpy_ps(X, x0);
+				mm_cpy_ps(Y, y0);
+				int N[4] = {};
+				for (int n = 0; n < MAXIMUM_ITERATIONS; n++) {
+					mandel_t x2[4] = {}; mm_mul_ps(x2, X, X);
+					mandel_t y2[4] = {}; mm_mul_ps(y2, Y, Y);
+					mandel_t xy[4] = {}; mm_mul_ps(xy, X, Y);
+					mandel_t r2[4] = {}; mm_add_ps(r2, x2, y2);
+					int cmp[4] = {}; 	 mm_cmple_ps(cmp, r2, MAX_RADIUS);
+					int mask = 			 mm_move_mask_ps(cmp);
+					if (!mask) break;
+					mm_add_epi32(N, N, cmp);
+					mm_sub_ps(X, x2, y2);
+					mm_add_ps(X, X, x0);
+					mm_add_ps(Y, xy, xy);
+					mm_add_ps(Y, Y, y0);
+				}
+				mm_mul_1epi32(N, N, COLOR_SENSITIVITY);
+				for (unsigned int i = 0; i < 4; i++) {
+					unsigned int cur_pixel_index = 4 * (x_index + y_index * WINDOW_WIDTH + i);
+					sfml->pixels[cur_pixel_index	] 	= (sf::Uint8)(N[i] % MAXIMUM_ITERATIONS);
+					sfml->pixels[cur_pixel_index + 1] 	= (sf::Uint8)(N[i] % MAXIMUM_ITERATIONS);
+					sfml->pixels[cur_pixel_index + 2] 	= (sf::Uint8)((MAXIMUM_ITERATIONS * COLOR_SENSITIVITY - N[i]) / COLOR_COEFFICIENT);
+					sfml->pixels[cur_pixel_index + 3] 	= 255;
+				}
+			}
+		}
+	}
 	return MANDELBROT_NO_ERROR;
 }
 

@@ -8,6 +8,7 @@ const char KEY_MODE_GRAPHICS[] 		= "--graphics";
 const char KEY_MODE_TEST[]			= "--test";
 const char KEY_FUNC_BASE[]			= "--base";
 const char KEY_FUNC_ARRAY[]			= "--array";
+const char KEY_FUNC_FUNCTION[]		= "--function";
 
 const unsigned int WINDOW_WIDTH 	= 800;
 const unsigned int WINDOW_HEIGHT 	= 800;
@@ -63,4 +64,5 @@ MandelbrotStatusCode RunLab(LabWork* lab);
 MandelbrotStatusCode KeyHandler(sf::Event* event, Mandel_struct* mnd);
 MandelbrotStatusCode BaseVersionMandelbrot(SFML* sfml, Mandel_struct* mnd);
 MandelbrotStatusCode ArrayVersionMandelbrot(SFML* sfml, Mandel_struct* mnd);
+MandelbrotStatusCode FunctionVersionMandelbrot(SFML* sfml, Mandel_struct* mnd);
 MandelbrotStatusCode CalcFPS(SFML* sfml, Mandel_struct* mnd);

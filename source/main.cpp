@@ -15,6 +15,8 @@ int main(int argc, char* argv[]) {
 		lab.func = &BaseVersionMandelbrot;
 	else if (!strcmp(argv[1], KEY_FUNC_ARRAY))
 		lab.func = &ArrayVersionMandelbrot;
+	else if (!strcmp(argv[1], KEY_FUNC_FUNCTION))
+		lab.func = &FunctionVersionMandelbrot;
 	else
 		MANDELBROT_ERROR_CHECK(MANDELBROT_CMD_LINE_KEY_FUNC_ERROR);
 
