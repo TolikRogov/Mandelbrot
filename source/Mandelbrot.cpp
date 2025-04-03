@@ -2,11 +2,9 @@
 
 MandelbrotStatusCode RunSFML(SFML* sfml) {
 
-	Mandel_struct mnd = {.horizontal 	= 0.0f,
-						 .vertical		= 0.0f,
-						 .scale			= 1.0f,
-						 .dx = WIDTH_PER_SEGMENTS / (mandel_t)WINDOW_WIDTH,
-			 			 .dy = HEIGHT_PER_SEGMENTS / (mandel_t)WINDOW_HEIGHT};
+	Mandel_struct mnd = {.scale	= 1.0f,
+						 .dx 	= WIDTH_PER_SEGMENTS / (mandel_t)WINDOW_WIDTH,
+			 			 .dy 	= HEIGHT_PER_SEGMENTS / (mandel_t)WINDOW_HEIGHT};
 
 	while (sfml->window.isOpen())
 	{
@@ -22,12 +20,25 @@ MandelbrotStatusCode RunSFML(SFML* sfml) {
 
 		RunMandelbrot(sfml, &mnd);
 		sfml->texture.update(sfml->pixels);
+		CalcFPS(sfml, &mnd);
 
 		sfml->window.clear();
 		sfml->window.draw(sfml->sprite);
 		sfml->window.display();
 	}
 
+	return MANDELBROT_NO_ERROR;
+}
+
+MandelbrotStatusCode CalcFPS(SFML* sfml, Mandel_struct* mnd) {
+	mnd->frames_count++;
+	double dt = 0.0f;
+	if (mnd->frames_count == 1) time(&(mnd->start_time));
+	else if ((dt = difftime(time(NULL), mnd->start_time)) - 1.0f >= EPS) {
+		mnd->fps = ((double)mnd->frames_count / dt);
+		mnd->frames_count = 0;
+		printf("FPS: %lg\n", mnd->fps);
+	}
 	return MANDELBROT_NO_ERROR;
 }
 

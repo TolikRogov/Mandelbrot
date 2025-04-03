@@ -1,8 +1,6 @@
 #include "Mandelbrot.hpp"
 
 int main() {
-	srand((unsigned int)time(NULL));
-
 	MandelbrotStatusCode mandelbrot_status = MANDELBROT_NO_ERROR;
 
 	SFML sfml = {};
