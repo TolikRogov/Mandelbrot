@@ -3,6 +3,7 @@
 #include <SFML/Graphics.hpp>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 #define RED(str) 		"\033[31;1m" str "\033[0m"
@@ -35,6 +36,8 @@ enum MandelbrotStatusCode {
 	MANDELBROT_ALLOCATION_ERROR,
 	MANDELBROT_NULL_POINTER,
 	MANDELBROT_UNDEFINED_ERROR,
+	MANDELBROT_CMD_LINE_KEY_AMOUNT_ERROR,
+	MANDELBROT_CMD_LINE_KEY_ERROR,
 };
 
 const wchar_t* MandelbrotErrorsMessenger(MandelbrotStatusCode status);
