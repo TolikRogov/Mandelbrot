@@ -1,13 +1,14 @@
 #include "Mandelbrot.hpp"
 
-MandelbrotStatusCode RunLab(SFML* sfml) {
-
+MandelbrotStatusCode RunLab(LabWork* lab) {
+	SFML* sfml = lab->sfml;
 	Mandel_struct mnd = {.scale	= STANDARD_SCALE,
 						 .dx 	= WIDTH_PER_SEGMENTS / (mandel_t)WINDOW_WIDTH,
-			 			 .dy 	= HEIGHT_PER_SEGMENTS / (mandel_t)WINDOW_HEIGHT};
+			 			 .dy 	= HEIGHT_PER_SEGMENTS / (mandel_t)WINDOW_HEIGHT,
+						 .runs 	= lab->runs};
 
-	if (sfml->mode == MODE_TEST) {
-		BaseVersionMandelbrot(sfml, &mnd);
+	if (lab->mode == MODE_TEST) {
+		lab->func(sfml, &mnd);
 		return MANDELBROT_NO_ERROR;
 	}
 
@@ -21,7 +22,7 @@ MandelbrotStatusCode RunLab(SFML* sfml) {
 			}
 		}
 
-		BaseVersionMandelbrot(sfml, &mnd);
+		lab->func(sfml, &mnd);
 		sfml->texture.update(sfml->pixels);
 
 		sfml->window.clear();
@@ -46,9 +47,9 @@ MandelbrotStatusCode CalcFPS(SFML* sfml, Mandel_struct* mnd) {
 }
 
 MandelbrotStatusCode BaseVersionMandelbrot(SFML* sfml, Mandel_struct* mnd) {
-	for (unsigned int N = 0; N < sfml->runs; N++) {
+	for (unsigned int N = 0; N < mnd->runs; N++) {
 		for (unsigned int y_index = 0; y_index < WINDOW_HEIGHT; y_index++) {
-			mandel_t x_0 = (mnd->horizontal + (-(mandel_t)WINDOW_WIDTH * X_CENTER_IN_SEGMENTS / WIDTH_PER_SEGMENTS) * mnd->scale)  * mnd->dx;
+			mandel_t x_0 = (mnd->horizontal + (-(mandel_t)WINDOW_WIDTH * X_CENTER_IN_SEGMENTS / WIDTH_PER_SEGMENTS) * mnd->scale) * mnd->dx;
 			mandel_t y_0 = (mnd->vertical + ((mandel_t)y_index - (mandel_t)WINDOW_HEIGHT / PART_OF_Y_CENTER_PXL) * mnd->scale) * mnd->dy;
 			for (unsigned int x_index = 0; x_index < WINDOW_WIDTH; x_index++, x_0 += mnd->dx * mnd->scale) {
 				mandel_t X = x_0,
@@ -69,6 +70,46 @@ MandelbrotStatusCode BaseVersionMandelbrot(SFML* sfml, Mandel_struct* mnd) {
 				sfml->pixels[cur_pixel_index + 1] 	= (sf::Uint8)(n % MAXIMUM_ITERATIONS);
 				sfml->pixels[cur_pixel_index + 2] 	= (sf::Uint8)((MAXIMUM_ITERATIONS * COLOR_SENSITIVITY - n) / COLOR_COEFFICIENT);
 				sfml->pixels[cur_pixel_index + 3] 	= 255;
+			}
+		}
+	}
+	return MANDELBROT_NO_ERROR;
+}
+
+MandelbrotStatusCode ArrayVersionMandelbrot(SFML* sfml, Mandel_struct* mnd) {
+	mandel_t cur_dx = mnd->dx * mnd->scale;
+	for (unsigned int runs = 0; runs < mnd->runs; runs++) {
+		for (unsigned int y_index = 0; y_index < WINDOW_HEIGHT; y_index++) {
+			mandel_t x_0 = (mnd->horizontal + (-(mandel_t)WINDOW_WIDTH * X_CENTER_IN_SEGMENTS / WIDTH_PER_SEGMENTS) * mnd->scale) * mnd->dx;
+			mandel_t y_0 = (mnd->vertical + ((mandel_t)y_index - (mandel_t)WINDOW_HEIGHT / PART_OF_Y_CENTER_PXL) * mnd->scale) * mnd->dy;
+			for (unsigned int x_index = 0; x_index < WINDOW_WIDTH; x_index += 4, x_0 += 4 * cur_dx) {
+				mandel_t x0[4] = {x_0, x_0 + cur_dx, x_0 + 2 * cur_dx, x_0 + 3 * cur_dx},
+						 y0[4] = {y_0, y_0, y_0, y_0},
+						 X[4] = {x0[0], x0[1], x0[2], x0[3]},
+						 Y[4] = {y_0, y_0, y_0, y_0};
+				int N[4] = {};
+				for (int n = 0; n < MAXIMUM_ITERATIONS; n++) {
+					mandel_t x2[4] = {}; for (size_t i = 0; i < 4; i++) x2[i] = X[i]  * X[i];
+					mandel_t y2[4] = {}; for (size_t i = 0; i < 4; i++) y2[i] = Y[i]  * Y[i];
+					mandel_t xy[4] = {}; for (size_t i = 0; i < 4; i++) xy[i] = X[i]  * Y[i];
+					mandel_t r2[4] = {}; for (size_t i = 0; i < 4; i++) r2[i] = x2[i] + y2[i];
+					int cmp[4] = {};
+					for (size_t i = 0; i < 4; i++) if (r2[i] <= MAX_RADIUS) cmp[i] = 1;
+					int mask = 0;
+					for (size_t i = 0; i < 4; i++) mask |= (cmp[i] << i);
+					if (!mask) break;
+					for (size_t i = 0; i < 4; i++) N[i] = N[i] + cmp[i];
+					for (size_t i = 0; i < 4; i++) X[i] = x2[i] - y2[i] + x0[i];
+					for (size_t i = 0; i < 4; i++) Y[i] = xy[i] + xy[i] + y0[i];
+				}
+				for (unsigned int i = 0; i < 4; i++) {
+					N[i] *= COLOR_SENSITIVITY;
+					unsigned int cur_pixel_index = 4 * (x_index + y_index * WINDOW_WIDTH + i);
+					sfml->pixels[cur_pixel_index	] 	= (sf::Uint8)(N[i] % MAXIMUM_ITERATIONS);
+					sfml->pixels[cur_pixel_index + 1] 	= (sf::Uint8)(N[i] % MAXIMUM_ITERATIONS);
+					sfml->pixels[cur_pixel_index + 2] 	= (sf::Uint8)((MAXIMUM_ITERATIONS * COLOR_SENSITIVITY - N[i]) / COLOR_COEFFICIENT);
+					sfml->pixels[cur_pixel_index + 3] 	= 255;
+				}
 			}
 		}
 	}
@@ -97,6 +138,7 @@ const wchar_t* MandelbrotErrorsMessenger(MandelbrotStatusCode status) {
 		case MANDELBROT_UNDEFINED_ERROR:					return L"MANDELBROT ERROR - ERROR IS UNDEFINED, SORRY!";
 		case MANDELBROT_CMD_LINE_KEY_AMOUNT_ERROR:			return L"MANDELBROT ERROR - WRONG AMOUNT OF CMD LINE KEYS";
 		case MANDELBROT_CMD_LINE_KEY_ERROR:					return L"MANDELBROT ERROR - UNKNOWN CMD LINE KEY";
+		case MANDELBROT_CMD_LINE_KEY_FUNC_ERROR:			return L"MANDELBROT ERROR - UNKNOWN FUNC VERSION OF MANDELBROT";
 		default: 											return L"UNDEFINED ERROR";
 	}
 }

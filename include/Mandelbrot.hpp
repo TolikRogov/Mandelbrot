@@ -4,8 +4,10 @@
 
 typedef double mandel_t;
 
-const char KEY_GRAPHICS[] 			= "--graphics";
-const char KEY_TEST[]				= "--test";
+const char KEY_MODE_GRAPHICS[] 		= "--graphics";
+const char KEY_MODE_TEST[]			= "--test";
+const char KEY_FUNC_BASE[]			= "--base";
+const char KEY_FUNC_ARRAY[]			= "--array";
 
 const unsigned int WINDOW_WIDTH 	= 800;
 const unsigned int WINDOW_HEIGHT 	= 800;
@@ -36,6 +38,7 @@ struct Mandel_struct {
 	mandel_t dx;
 	mandel_t dy;
 	unsigned int frames_count;
+	unsigned int runs;
 	double fps;
 	clock_t start_time;
 };
@@ -45,11 +48,19 @@ struct SFML {
 	sf::Uint8* pixels;
 	sf::Texture texture;
 	sf::Sprite sprite;
-	RunningMode mode;
-	unsigned int runs;
 };
 
-MandelbrotStatusCode RunLab(SFML* sfml);
+typedef MandelbrotStatusCode (*mandel_func_t)(SFML* sfml, Mandel_struct* mnd);
+
+struct LabWork {
+	RunningMode mode;
+	unsigned int runs;
+	mandel_func_t func;
+	SFML* sfml;
+};
+
+MandelbrotStatusCode RunLab(LabWork* lab);
 MandelbrotStatusCode KeyHandler(sf::Event* event, Mandel_struct* mnd);
 MandelbrotStatusCode BaseVersionMandelbrot(SFML* sfml, Mandel_struct* mnd);
+MandelbrotStatusCode ArrayVersionMandelbrot(SFML* sfml, Mandel_struct* mnd);
 MandelbrotStatusCode CalcFPS(SFML* sfml, Mandel_struct* mnd);

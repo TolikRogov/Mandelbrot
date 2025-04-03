@@ -38,6 +38,7 @@ enum MandelbrotStatusCode {
 	MANDELBROT_UNDEFINED_ERROR,
 	MANDELBROT_CMD_LINE_KEY_AMOUNT_ERROR,
 	MANDELBROT_CMD_LINE_KEY_ERROR,
+	MANDELBROT_CMD_LINE_KEY_FUNC_ERROR,
 };
 
 const wchar_t* MandelbrotErrorsMessenger(MandelbrotStatusCode status);
