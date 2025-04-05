@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+#include <immintrin.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
