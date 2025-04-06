@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include <time.h>
 
 #define RED(str) 		"\033[31;1m" str "\033[0m"
@@ -34,6 +35,7 @@
 enum MandelbrotStatusCode {
 	MANDELBROT_NO_ERROR,
 	MANDELBROT_SFML_CREATE_ERROR,
+	MANDELBROT_SFML_LOAD_FROM_FILE_ERROR,
 	MANDELBROT_ALLOCATION_ERROR,
 	MANDELBROT_NULL_POINTER,
 	MANDELBROT_UNDEFINED_ERROR,

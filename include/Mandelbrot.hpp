@@ -4,6 +4,13 @@
 
 typedef double mandel_t;
 
+#define _DIR_DATA 				"data/"
+#define _DIR_FONTS 				_DIR_DATA "fonts/"
+#define _DIR_SHARE_TECH_CYR 	_DIR_FONTS "Share Tech CYR/"
+#define _FONT_SHARE_TECH_CYR	_DIR_SHARE_TECH_CYR "Share-Tech-CYR.otf"
+
+#define _TEXT_FPS_POSITION sf::Vector2((float)sfml.text.getCharacterSize() / 3.0f, 0.0f)
+
 const char KEY_MODE_GRAPHICS[] 		= "--graphics";
 const char KEY_MODE_TEST[]			= "--test";
 
@@ -52,6 +59,8 @@ struct SFML {
 	sf::Uint8* pixels;
 	sf::Texture texture;
 	sf::Sprite sprite;
+	sf::Font font;
+	sf::Text text;
 };
 
 typedef MandelbrotStatusCode (*mandel_func_t)(SFML* sfml, Mandel_struct* mnd);

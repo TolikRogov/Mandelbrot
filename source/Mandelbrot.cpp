@@ -54,6 +54,7 @@ MandelbrotStatusCode RunLab(LabWork* lab) {
 
 		sfml->window.clear();
 		sfml->window.draw(sfml->sprite);
+		sfml->window.draw(sfml->text);
 		sfml->window.display();
 		CalcFPS(sfml, &mnd);
 	}
@@ -153,7 +154,7 @@ MandelbrotStatusCode CalcFPS(SFML* sfml, Mandel_struct* mnd) {
 	else if ((dt = (double)(clock() - mnd->start_time) / CLOCKS_PER_SEC) - STANDARD_TIME_DELAY >= EPS) {
 		mnd->fps = ((double)mnd->frames_count / dt);
 		mnd->frames_count = 0;
-		printf("FPS: %lg\n", mnd->fps);
+		sfml->text.setString("FPS: " + std::to_string(int(mnd->fps)));
 	}
 	return MANDELBROT_NO_ERROR;
 }
@@ -245,6 +246,7 @@ const wchar_t* MandelbrotErrorsMessenger(MandelbrotStatusCode status) {
 	switch (status) {
 		case MANDELBROT_NO_ERROR:							return L"MANDELBROT ERROR - NO ERROR";
 		case MANDELBROT_SFML_CREATE_ERROR:					return L"MANDELBROT ERROR - SFML DOESN'T CREATE CLASS";
+		case MANDELBROT_SFML_LOAD_FROM_FILE_ERROR:			return L"MANDELBROT ERROR - SFML LOAD FROM FILE ENDS WITH ERROR";
 		case MANDELBROT_ALLOCATION_ERROR:					return L"MANDELBROT ERROR - MEMORY WAS ALLOCATED WITH ERROR";
 		case MANDELBROT_NULL_POINTER:						return L"MANDELBROT ERROR - NULL POINTER";
 		case MANDELBROT_UNDEFINED_ERROR:					return L"MANDELBROT ERROR - ERROR IS UNDEFINED, SORRY!";

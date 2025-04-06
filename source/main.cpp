@@ -29,7 +29,12 @@ int main(int argc, char* argv[]) {
 		if (!sfml.texture.create(WINDOW_WIDTH, WINDOW_HEIGHT))
 			MANDELBROT_ERROR_CHECK(MANDELBROT_SFML_CREATE_ERROR);
 
+		if (!sfml.font.loadFromFile(_FONT_SHARE_TECH_CYR))
+			MANDELBROT_ERROR_CHECK(MANDELBROT_SFML_LOAD_FROM_FILE_ERROR);
+
 		sfml.sprite.setTexture(sfml.texture);
+		sfml.text.setFont(sfml.font);
+		sfml.text.setPosition(_TEXT_FPS_POSITION);
 
 		mandelbrot_status = RunLab(&lab);
 		MANDELBROT_ERROR_CHECK(mandelbrot_status);
